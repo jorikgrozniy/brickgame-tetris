@@ -25,11 +25,23 @@ void print_field() {
   printf(" ----------\n");
 }
 
+void free_snapshot(GameInfo_t* snapshot) {
+  if (snapshot->field) {
+    for (int i = 0; i < FIELD_H; i++) free(snapshot->field[i]);
+    free(snapshot->field);
+  }
+  if (snapshot->next) {
+    for (int i = 0; i < FIGURE_MAX_LENGTH; i++) free(snapshot->next[i]);
+    free(snapshot->next);
+  }
+}
+
 void input(UserAction_t act, int n) {
   for (int i = 0; i < n; i++) {
     srand(SEED);
     userInput(act, false);
-    updateCurrentState();
+    GameInfo_t info = updateCurrentState();
+    free_snapshot(&info);
   }
 }
 
@@ -235,6 +247,8 @@ START_TEST(test_gameover) {
   input(Down, 40);
   ck_assert(staticGame()->state == START);
   input(Terminate, 1);
+  free_game_memory();
+  staticGame()->terminated = false;
 }
 END_TEST
 
@@ -273,5 +287,5 @@ int main() {
   }
 
   printf("========= FAILED: %d =========\n", failed);
-  return 0;
+  return failed != 0;
 }

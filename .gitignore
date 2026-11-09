@@ -1,4 +1,10 @@
 obj/
 brick_game/tetris/lib/
 brickgame
+test_runner
 tetris.score
+coverage/
+dist/
+*.gcno
+*.gcda
+*.gcov

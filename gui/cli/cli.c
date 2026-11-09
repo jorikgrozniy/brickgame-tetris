@@ -36,13 +36,18 @@ bool loadLibrary(const char* lib_name,
         strcat(path, lib);
       }
     }
+    if (access(path, F_OK) != 0) {
+      strcpy(path, lib);
+    }
 
-    if (access(path, F_OK) == 0) {
+    if (access(path, F_OK) == 0 || strchr(path, '/') == NULL) {
       handle = dlopen(path, RTLD_LAZY | RTLD_LOCAL);
-      void* void_ptr = dlsym(handle, "userInput");
-      memcpy(userInput_ptr, &void_ptr, sizeof(void_ptr));
-      void_ptr = dlsym(handle, "updateCurrentState");
-      memcpy(updateCurrentState_ptr, &void_ptr, sizeof(void_ptr));
+      if (handle) {
+        void* void_ptr = dlsym(handle, "userInput");
+        memcpy(userInput_ptr, &void_ptr, sizeof(void_ptr));
+        void_ptr = dlsym(handle, "updateCurrentState");
+        memcpy(updateCurrentState_ptr, &void_ptr, sizeof(void_ptr));
+      }
     }
   } else
     handle = NULL;
@@ -50,6 +55,7 @@ bool loadLibrary(const char* lib_name,
 }
 
 int get_user_action(UserAction_t* action, bool* hold) {
+  *action = Up;
   *hold = false;
   int input_made = 1;
   Keys_t ch = getch();
@@ -236,8 +242,8 @@ int main(int argc, char* argv[]) {
   draw_info_plates(OFFSET_X, OFFSET_Y, FIELD_W, FIELD_H, game_title);
 
   while (1) {
-    UserAction_t action;
-    bool hold;
+    UserAction_t action = Up;
+    bool hold = false;
     if (get_user_action(&action, &hold)) userInput_ptr(action, hold);
     GameInfo_t game_info = updateCurrentState_ptr();
     if (action == Terminate) break;
